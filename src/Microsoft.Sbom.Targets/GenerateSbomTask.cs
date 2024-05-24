@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+namespace Microsoft.Sbom.Targets;
 
 using System;
 using Microsoft.Build.Framework;
@@ -10,8 +11,6 @@ using Microsoft.Sbom.Extensions.DependencyInjection;
 using Microsoft.Sbom.Tool;
 using PowerArgs;
 using Task = Microsoft.Build.Utilities.Task;
-
-namespace Microsoft.Sbom.Targets;
 
 public class GenerateSbomTask : Task
 {
@@ -37,25 +36,25 @@ public class GenerateSbomTask : Task
 
     public override bool Execute()
     {
-        if (string.IsNullOrEmpty(BuildDropPath) ||
-            string.IsNullOrEmpty(BuildComponentPath) ||
-            string.IsNullOrEmpty(PackageSupplier) ||
-            string.IsNullOrEmpty(PackageName) ||
-            string.IsNullOrEmpty(PackageVersion))
+        if (string.IsNullOrEmpty(this.BuildDropPath) ||
+            string.IsNullOrEmpty(this.BuildComponentPath) ||
+            string.IsNullOrEmpty(this.PackageSupplier) ||
+            string.IsNullOrEmpty(this.PackageName) ||
+            string.IsNullOrEmpty(this.PackageVersion))
         {
-            Log.LogError("Required argument not provided.");
+            this.Log.LogError("Required argument not provided.");
             return false;
         }
 
         try
         {
             // TODO replace this with a call to SBOM API to generate SBOM 
-            SbomPath = "path/to/sbom";
+            this.SbomPath = "path/to/sbom";
             return true;
         }
         catch (Exception e)
         {
-            Log.LogError($"SBOM generation failed: {e.Message}");
+            this.Log.LogError($"SBOM generation failed: {e.Message}");
             return false;
         }
     }

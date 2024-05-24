@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+namespace Microsoft.Sbom.Api;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,8 +19,6 @@ using Microsoft.Sbom.Common.Config.Validators;
 using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Contracts.Enums;
 using PowerArgs;
-
-namespace Microsoft.Sbom.Api;
 
 /// <summary>
 /// Responsible for an API to generate SBOMs.
@@ -71,7 +71,7 @@ public class SbomGenerator : ISBOMGenerator
         inputConfiguration = ValidateConfig(inputConfiguration);
 
         // Globally update the configuration
-        inputConfiguration.ToConfiguration();
+        var x = inputConfiguration.ToConfiguration();
 
         // This is the generate workflow
         var isSuccess = await generationWorkflow.RunAsync();

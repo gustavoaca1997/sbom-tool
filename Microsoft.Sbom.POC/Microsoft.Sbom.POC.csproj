@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Microsoft.Sbom.Parsers.Spdx22SbomParser</AssemblyName>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Description>SPDX2.2 parser for SBOM tool.</Description>
-    <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(StrongNameSigningKeyFilePath)</AssemblyOriginatorKeyFile>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
@@ -25,13 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Sbom.Contracts\Microsoft.Sbom.Contracts.csproj" />
-    <ProjectReference Include="..\Microsoft.Sbom.Extensions\Microsoft.Sbom.Extensions.csproj" />
+    <ProjectReference Include="..\src\Microsoft.Sbom.Api\Microsoft.Sbom.Api.csproj" />
+    <ProjectReference Include="..\src\Microsoft.Sbom.Extensions.DependencyInjection\Microsoft.Sbom.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>$(AssemblyName).Tests, PublicKey=$(StrongNameSigningPublicKey)</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
+
 </Project>
