@@ -179,7 +179,7 @@ public class GenerateSbomTask : Task
             return;
         }
 
-        if (Enum.TryParse(this.Verbosity, out EventLevel eventLevel)) {
+        if (Enum.TryParse(this.Verbosity, true, out EventLevel eventLevel)) {
             this.EventLevelVerbosity = eventLevel;
         } else {
             Log.LogMessage("Unrecognized verbosity level specified. Setting verbosity level at \"LogAlways\"");
