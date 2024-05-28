@@ -121,8 +121,7 @@ public class GenerateSbomTask : Task
     {
         try
         {
-            this.ValidateAndAssignVerbosity();
-            // Set other configurations. The GenerateSBOMAsyn() already sanitizes and checks for
+            // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
             // one is not provided.
             var sbomMetadata = new SBOMMetadata
@@ -168,7 +167,7 @@ public class GenerateSbomTask : Task
     {
         if (string.IsNullOrEmpty(this.Verbosity))
         {
-            Log.LogMessage("No verbosity level specified. Setting verbosity level at \"LogAlways\"");
+            Log.LogMessage($"No verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
             return EventLevel.LogAlways;
         }
 
@@ -176,7 +175,7 @@ public class GenerateSbomTask : Task
             return eventLevel;
         }
 
-        Log.LogMessage("Unrecognized verbosity level specified. Setting verbosity level at \"LogAlways\"");
+        Log.LogMessage($"Unrecognized verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
         return EventLevel.LogAlways;
     }
 }
