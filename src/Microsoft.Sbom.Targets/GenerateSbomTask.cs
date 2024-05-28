@@ -87,12 +87,6 @@ public class GenerateSbomTask : Task
     public string Verbosity { get; set; }
 
     /// <summary>
-    /// SBOM API utilizes EventLevel to determine
-    /// verbosity level.
-    /// </summary>
-    public EventLevel EventLevelVerbosity { get; set; }
-
-    /// <summary>
     /// A list of the name and version of the manifest format being used.
     /// </summary>
     public string ManifestInfo { get; set; }
@@ -142,7 +136,7 @@ public class GenerateSbomTask : Task
                 NamespaceUriBase = this.NamespaceBaseUri,
                 NamespaceUriUniquePart = this.NamespaceUriUniquePart,
                 DeleteManifestDirectoryIfPresent = this.DeleteManifestDirIfPresent,
-                Verbosity = this.EventLevelVerbosity
+                Verbosity = ValidateAndAssignVerbosity()
             };
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             var result = System.Threading.Tasks.Task.Run(() => this.Generator.GenerateSbomAsync(
@@ -170,20 +164,19 @@ public class GenerateSbomTask : Task
     /// Checks the user's input for Verbosity and assigns the
     /// associated EventLevel value for logging.
     /// </summary>
-    private void ValidateAndAssignVerbosity()
+    private EventLevel ValidateAndAssignVerbosity()
     {
         if (string.IsNullOrEmpty(this.Verbosity))
         {
             Log.LogMessage("No verbosity level specified. Setting verbosity level at \"LogAlways\"");
-            this.EventLevelVerbosity = EventLevel.LogAlways;
-            return;
+            return EventLevel.LogAlways;
         }
 
         if (Enum.TryParse(this.Verbosity, true, out EventLevel eventLevel)) {
-            this.EventLevelVerbosity = eventLevel;
-        } else {
-            Log.LogMessage("Unrecognized verbosity level specified. Setting verbosity level at \"LogAlways\"");
-            this.EventLevelVerbosity = EventLevel.LogAlways;
+            return eventLevel;
         }
+
+        Log.LogMessage("Unrecognized verbosity level specified. Setting verbosity level at \"LogAlways\"");
+        return EventLevel.LogAlways;
     }
 }
