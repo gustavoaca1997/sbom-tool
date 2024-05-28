@@ -144,7 +144,7 @@ public class GenerateSbomTask : Task
                 metadata: sbomMetadata,
                 componentPath: this.BuildComponentPath,
                 runtimeConfiguration: runtimeConfiguration,
-                specifications: !string.IsNullOrWhiteSpace(this.ManifestInfo) ? [SbomSpecification.Parse(this.ManifestInfo)] : null,
+                specifications: ValidateAndAssignSpecifications(),
                 externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
@@ -177,5 +177,19 @@ public class GenerateSbomTask : Task
 
         Log.LogMessage($"Unrecognized verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
         return EventLevel.LogAlways;
+    }
+
+    /// <summary>
+    /// Check for ManifestInfo and create an SbomSpecification accordingly
+    /// </summary>
+    /// <returns></returns>
+    private IList<SbomSpecification> ValidateAndAssignSpecifications()
+    {
+        if (!string.IsNullOrWhiteSpace(this.ManifestInfo))
+        {
+           return new List<SbomSpecification> { SbomSpecification.Parse(this.ManifestInfo) };
+        }
+
+        return null;
     }
 }
