@@ -4,14 +4,18 @@
 namespace Microsoft.Sbom.Targets;
 
 using System;
+using System.Diagnostics.Tracing;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Sbom.Api;
+using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Extensions.DependencyInjection;
 using Microsoft.Sbom.Tool;
+using Microsoft.VisualBasic;
 using PowerArgs;
+using Serilog.Events;
 
 public class GenerateSbomTask : Task
 {
@@ -82,6 +86,12 @@ public class GenerateSbomTask : Task
     public string Verbosity { get; set; }
 
     /// <summary>
+    /// SBOM API utilizes EventLevel to determine
+    /// verbosity level.
+    /// </summary>
+    public EventLevel EventLevelVerbosity { get; set; }
+
+    /// <summary>
     /// A list of the name and version of the manifest format being used.
     /// </summary>
     public string ManifestInfo { get; set; }
@@ -102,15 +112,28 @@ public class GenerateSbomTask : Task
 
     public override bool Execute()
     {
-        if (string.IsNullOrEmpty(BuildDropPath) ||
-            string.IsNullOrEmpty(BuildComponentPath) ||
-            string.IsNullOrEmpty(PackageSupplier) ||
-            string.IsNullOrEmpty(PackageName) ||
-            string.IsNullOrEmpty(PackageVersion))
+        // Parse and assign verbosity accordingly
+        this.ValidateAndAssignVerbosity();
+
+        // Set other configurations. The GenerateSBOMAsyn() already sanitizes and checks for
+        // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
+        // one is not provided.
+        var runtimeConfiguration = new RuntimeConfiguration()
         {
-            Log.LogError("Required argument not provided.");
-            return false;
-        }
+            DeleteManifestDirectoryIfPresent = this.DeleteManifestDirIfPresent,
+            Verbosity = this.EventLevelVerbosity,
+            NamespaceUriBase = this.NamespaceBaseUri,
+            NamespaceUriUniquePart = this.NamespaceUriUniquePart
+        };
+
+        var metadata = new SBOMMetadata()
+        {
+            PackageName = this.PackageName,
+            PackageVersion = this.PackageVersion,
+            PackageSupplier = this.PackageSupplier
+        };
+
+        // TODO: figure out how to call GenerateSBOMAsync()
 
         try
         {
@@ -122,6 +145,46 @@ public class GenerateSbomTask : Task
         {
             Log.LogError($"SBOM generation failed: {e.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Checks the user's input for Verbosity and assigns the
+    /// associated EventLevel value for logging.
+    /// </summary>
+    private void ValidateAndAssignVerbosity()
+    {
+        if (string.IsNullOrEmpty(this.Verbosity))
+        {
+            Log.LogMessage("No verbosity level specified. Setting verbosity level at \"LogAlways\"");
+            this.EventLevelVerbosity = EventLevel.LogAlways;
+            return;
+        }
+
+        switch (this.Verbosity.ToUpper())
+        {
+            case "CRITICAL":
+                this.EventLevelVerbosity = EventLevel.Critical;
+                break;
+            case "INFORMATIONAL":
+                this.EventLevelVerbosity = EventLevel.Informational;
+                break;
+            case "ERROR":
+                this.EventLevelVerbosity = EventLevel.Error;
+                break;
+            case "LOGALWAYS":
+                this.EventLevelVerbosity = EventLevel.LogAlways;
+                break;
+            case "WARNING":
+                this.EventLevelVerbosity = EventLevel.Warning;
+                break;
+            case "VERBOSE":
+                this.EventLevelVerbosity = EventLevel.Verbose;
+                break;
+            default:
+                Log.LogMessage("Unrecognized verbosity level specified. Setting verbosity level at \"LogAlways\"");
+                this.EventLevelVerbosity = EventLevel.LogAlways;
+                break;
         }
     }
 }
