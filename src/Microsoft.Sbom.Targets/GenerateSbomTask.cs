@@ -29,13 +29,6 @@ public class GenerateSbomTask : Task
     public string BuildDropPath { get; set; }
 
     /// <summary>
-    /// The path to the directory containing build components and package information.
-    /// For example, path to a .csproj or packages.config file.
-    /// </summary>
-    [Required]
-    public string BuildComponentPath { get; set; }
-
-    /// <summary>
     /// Supplier of the package the SBOM represents.
     /// </summary>
     [Required]
@@ -58,6 +51,12 @@ public class GenerateSbomTask : Task
     /// </summary>
     [Required]
     public string NamespaceBaseUri { get; set; }
+
+        /// <summary>
+    /// The path to the directory containing build components and package information.
+    /// For example, path to a .csproj or packages.config file.
+    /// </summary>
+    public string BuildComponentPath { get; set; }
 
     /// <summary>
     /// A unique URI part that will be appended to NamespaceBaseUri.
@@ -119,7 +118,6 @@ public class GenerateSbomTask : Task
     public override bool Execute()
     {
         if (string.IsNullOrEmpty(BuildDropPath) ||
-            string.IsNullOrEmpty(BuildComponentPath) ||
             string.IsNullOrEmpty(PackageSupplier) ||
             string.IsNullOrEmpty(PackageName) ||
             string.IsNullOrEmpty(PackageVersion))
@@ -130,24 +128,26 @@ public class GenerateSbomTask : Task
 
         try
         {
+            var sbomMetadata = new SBOMMetadata
+            {
+                PackageSupplier = this.PackageSupplier,
+                PackageName = this.PackageName,
+                PackageVersion = this.PackageVersion,
+            };
+            var runtimeConfiguration = new RuntimeConfiguration
+            {
+                NamespaceUriBase = this.NamespaceBaseUri,
+                NamespaceUriUniquePart = this.NamespaceUriUniquePart,
+                DeleteManifestDirectoryIfPresent = this.DeleteManifestDirIfPresent,
+                Verbosity = Enum.TryParse(this.Verbosity, out EventLevel eventLevel) ? eventLevel : default, // TODO: validate this
+            };
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             var result = System.Threading.Tasks.Task.Run(() => this.Generator.GenerateSbomAsync(
                 rootPath: this.BuildDropPath,
                 manifestDirPath: this.ManifestDirPath,
-                metadata: new SBOMMetadata
-                {
-                    PackageSupplier = this.PackageSupplier,
-                    PackageName = this.PackageName,
-                    PackageVersion = this.PackageVersion,
-                },
+                metadata: sbomMetadata,
                 componentPath: this.BuildComponentPath,
-                runtimeConfiguration: new RuntimeConfiguration
-                {
-                    NamespaceUriBase = this.NamespaceBaseUri,
-                    NamespaceUriUniquePart = this.NamespaceUriUniquePart,
-                    DeleteManifestDirectoryIfPresent = this.DeleteManifestDirIfPresent,
-                    Verbosity = Enum.Parse<EventLevel>(this.Verbosity), // TODO: validate this
-                },
+                runtimeConfiguration: runtimeConfiguration,
                 specifications: !string.IsNullOrWhiteSpace(this.ManifestInfo) ? [SbomSpecification.Parse(this.ManifestInfo)] : null,
                 externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
