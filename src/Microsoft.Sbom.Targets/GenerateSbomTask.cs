@@ -117,6 +117,7 @@ public class GenerateSbomTask : Task
 
     public override bool Execute()
     {
+        // TODO: Validate all arguments.
         if (string.IsNullOrEmpty(BuildDropPath) ||
             string.IsNullOrEmpty(PackageSupplier) ||
             string.IsNullOrEmpty(PackageName) ||
@@ -157,6 +158,7 @@ public class GenerateSbomTask : Task
         }
         catch (Exception e)
         {
+            // TODO: Add automated tests for the different exceptions.
             Log.LogError($"SBOM generation failed: {e.Message}");
             return false;
         }
