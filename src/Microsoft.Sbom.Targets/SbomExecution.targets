@@ -1,8 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <!-- TODO remove hardcoded str, reference this assembly using MSBuild props instead -->
+    <!-- TODO remove hardcoded str, reference this assembly using MSBuild props instead
     <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="C:\code\sbom-tool\src\Microsoft.Sbom.Targets\bin\Debug\\net8.0\Microsoft.Sbom.Targets.dll" />
 
-    <!-- TODO we will eventaully want to replace or remove `AfterTargets="Build"`.
+    TODO we will eventaully want to replace or remove `AfterTargets="Build"`.
         Including this line means that this code will run at the end of `dotnet build`s of any project that this .targets
         file is imported to (see line 24 of Microsoft.Sbom.Targets.csproj as an example of importing this file). This is
         good for testing purposes, but not the behavior we ultimately want. 
@@ -29,5 +29,5 @@
         </GenerateSbomTask> 
         <Message Importance="High" Text="Task result: $(SbomPathResult)" />
     </Target>
-    -->
+-->
 </Project>
