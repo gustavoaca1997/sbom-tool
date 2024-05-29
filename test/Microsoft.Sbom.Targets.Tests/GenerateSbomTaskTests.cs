@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Sbom.Contracts;
+using Microsoft.Sbom.Extensions.DependencyInjection;
 using Microsoft.Sbom.Targets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -18,7 +22,6 @@ public class GenerateSbomTaskTests
     private static readonly string CurrentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
     private static readonly string ManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
     private static readonly string TemporaryDirectory = Path.Combine(CurrentDirectory, "_temp");
-    private static readonly string ManifestPath = Path.Combine(ManifestDirectory, "spdx_2.2", "manifest.spdx.json");
     private const string PackageSuplier = "Test-Microsoft";
     private const string PackageName = "CoseSignTool";
     private const string PackageVersion = "0.0.1";
@@ -26,25 +29,47 @@ public class GenerateSbomTaskTests
 
     private Mock<IBuildEngine> buildEngine;
     private List<BuildErrorEventArgs> errors;
+    private ISBOMValidator sbomValidator;
+    private string manifestPath;
 
     [TestInitialize]
     public void Startup()
     {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureServices((host, services) =>
+                services
+                .AddSbomTool())
+            .Build();
+        this.sbomValidator = host.Services.GetRequiredService<ISBOMValidator>();
+
         // Setup the build engine
-        buildEngine = new Mock<IBuildEngine>();
-        errors = new List<BuildErrorEventArgs>();
-        buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => errors.Add(e));
+        this.buildEngine = new Mock<IBuildEngine>();
+        this.errors = new List<BuildErrorEventArgs>();
+        this.buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => errors.Add(e));
 
         // Clean up the manifest directory
         if (Directory.Exists(ManifestDirectory))
         {
             Directory.Delete(ManifestDirectory, true);
         }
+
+        this.manifestPath = Path.Combine(ManifestDirectory, "spdx_2.2", "manifest.spdx.json");
     }
 
     [TestCleanup]
     public void Cleanup()
     {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+        if (File.Exists(this.manifestPath))
+        {
+            Assert.IsTrue(this.sbomValidator.ValidateSbomAsync(
+                CurrentDirectory,
+                TemporaryDirectory,
+                null,
+                manifestDirPath: Path.Combine(this.manifestPath, "..", "..")).GetAwaiter().GetResult().IsSuccess);
+        }
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+
         // Clean up the manifest directory
         if (Directory.Exists(TemporaryDirectory))
         {
@@ -71,10 +96,10 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(ManifestPath));
+        Assert.IsTrue(File.Exists(manifestPath));
 
         // Read and parse the manifest
-        var manifestContent = File.ReadAllText(ManifestPath);
+        var manifestContent = File.ReadAllText(manifestPath);
         var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
 
         // Check the manifest has expected values
@@ -123,11 +148,11 @@ public class GenerateSbomTaskTests
         // Assert
         Assert.IsTrue(result);
 
-        var manifestPath = Path.Combine(manifestDirPath, "_manifest", "spdx_2.2", "manifest.spdx.json");
+        this.manifestPath = Path.Combine(manifestDirPath, "_manifest", "spdx_2.2", "manifest.spdx.json");
         Assert.IsTrue(File.Exists(manifestPath));
 
         // Read and parse the manifest
-        var manifestContent = File.ReadAllText(manifestPath);
+        var manifestContent = File.ReadAllText(this.manifestPath);
         var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
 
         // Check the manifest has expected values
@@ -266,10 +291,10 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(ManifestPath));
+        Assert.IsTrue(File.Exists(manifestPath));
 
         // Read and parse the manifest
-        var manifestContent = File.ReadAllText(ManifestPath);
+        var manifestContent = File.ReadAllText(manifestPath);
         var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
 
         // Check the manifest has expected values
@@ -316,10 +341,10 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(ManifestPath));
+        Assert.IsTrue(File.Exists(manifestPath));
 
         // Read and parse the manifest
-        var manifestContent = File.ReadAllText(ManifestPath);
+        var manifestContent = File.ReadAllText(manifestPath);
         var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
 
         // Check the manifest has expected values
