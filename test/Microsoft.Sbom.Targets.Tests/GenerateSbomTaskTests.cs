@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Sbom.Api.Utils;
 using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Extensions.DependencyInjection;
 using Microsoft.Sbom.Targets;
+using Microsoft.Sbom.Targets.Tests.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
@@ -20,7 +22,7 @@ namespace Microsoft.Sbom.Targets.Tests;
 public class GenerateSbomTaskTests
 {
     private static readonly string CurrentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-    private static readonly string ManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
+    private static readonly string DefaultManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
     private static readonly string TemporaryDirectory = Path.Combine(CurrentDirectory, "_temp");
     private const string PackageSuplier = "Test-Microsoft";
     private const string PackageName = "CoseSignTool";
@@ -31,6 +33,15 @@ public class GenerateSbomTaskTests
     private List<BuildErrorEventArgs> errors;
     private ISBOMValidator sbomValidator;
     private string manifestPath;
+    private SbomSpecification sbomSpecification;
+    private GeneratedSbomValidator generatedSbomValidator;
+
+    private string SbomSpecificationDirectoryName => $"{this.sbomSpecification.Name}_{this.sbomSpecification.Version}";
+
+    public GenerateSbomTaskTests()
+    {
+        this.sbomSpecification = Constants.SPDX22Specification;
+    }
 
     [TestInitialize]
     public void Startup()
@@ -48,12 +59,19 @@ public class GenerateSbomTaskTests
         this.buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => errors.Add(e));
 
         // Clean up the manifest directory
-        if (Directory.Exists(ManifestDirectory))
+        if (Directory.Exists(DefaultManifestDirectory))
         {
-            Directory.Delete(ManifestDirectory, true);
+            Directory.Delete(DefaultManifestDirectory, true);
         }
 
-        this.manifestPath = Path.Combine(ManifestDirectory, "spdx_2.2", "manifest.spdx.json");
+        // Clean up the manifest directory
+        if (Directory.Exists(TemporaryDirectory))
+        {
+            Directory.Delete(TemporaryDirectory, true);
+        }
+
+        this.manifestPath = Path.Combine(DefaultManifestDirectory, this.SbomSpecificationDirectoryName, "manifest.spdx.json");
+        this.generatedSbomValidator = new(this.sbomSpecification);
     }
 
     [TestCleanup]
@@ -69,12 +87,6 @@ public class GenerateSbomTaskTests
                 manifestDirPath: Path.Combine(this.manifestPath, "..", "..")).GetAwaiter().GetResult().IsSuccess);
         }
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-
-        // Clean up the manifest directory
-        if (Directory.Exists(TemporaryDirectory))
-        {
-            Directory.Delete(TemporaryDirectory, true);
-        }
     }
 
     [TestMethod]
@@ -96,33 +108,7 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(manifestPath));
-
-        // Read and parse the manifest
-        var manifestContent = File.ReadAllText(manifestPath);
-        var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
-
-        // Check the manifest has expected values
-        var filesValue = manifest["files"];
-        Assert.IsNotNull(filesValue);
-        Assert.IsTrue(filesValue.Count > 0);
-
-        var packagesValue = manifest["packages"];
-        Assert.IsNotNull(packagesValue);
-        Assert.IsTrue(packagesValue.Count == 1);
-
-        var nameValue = manifest["name"];
-        Assert.IsNotNull(nameValue);
-        Assert.AreEqual($"{PackageName} {PackageVersion}", (string)nameValue);
-
-        var creatorsValue = manifest["creationInfo"]["creators"];
-        Assert.IsNotNull(creatorsValue);
-        Assert.IsTrue(creatorsValue.Count > 0);
-        Assert.IsTrue(((string)creatorsValue[0]).Contains(PackageSuplier));
-
-        string namespaceValue = manifest["documentNamespace"];
-        Assert.IsNotNull(namespaceValue);
-        Assert.IsTrue(namespaceValue.Contains($"{NamespaceBaseUri}/{PackageName}/{PackageVersion}"));
+        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSuplier, NamespaceBaseUri);
     }
 
     [TestMethod]
@@ -148,7 +134,7 @@ public class GenerateSbomTaskTests
         // Assert
         Assert.IsTrue(result);
 
-        this.manifestPath = Path.Combine(manifestDirPath, "_manifest", "spdx_2.2", "manifest.spdx.json");
+        this.manifestPath = Path.Combine(manifestDirPath, "_manifest", this.SbomSpecificationDirectoryName, "manifest.spdx.json");
         Assert.IsTrue(File.Exists(manifestPath));
 
         // Read and parse the manifest
@@ -219,7 +205,7 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsFalse(result);
-        Assert.IsFalse(Directory.Exists(ManifestDirectory));
+        Assert.IsFalse(Directory.Exists(DefaultManifestDirectory));
     }
 
     [TestMethod]
@@ -242,7 +228,7 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsFalse(result);
-        Assert.IsFalse(Directory.Exists(ManifestDirectory));
+        Assert.IsFalse(Directory.Exists(DefaultManifestDirectory));
     }
 
     [TestMethod]
@@ -265,7 +251,7 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsFalse(result);
-        Assert.IsFalse(Directory.Exists(ManifestDirectory));
+        Assert.IsFalse(Directory.Exists(DefaultManifestDirectory));
     }
 
     [TestMethod]
