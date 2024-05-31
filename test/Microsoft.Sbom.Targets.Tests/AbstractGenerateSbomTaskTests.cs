@@ -26,28 +26,28 @@ public abstract class AbstractGenerateSbomTaskTests
 {
     internal abstract SbomSpecification SbomSpecification { get; }
 
-    private static readonly string CurrentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-    private static readonly string DefaultManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
-    private static readonly string TemporaryDirectory = Path.Combine(CurrentDirectory, "_temp");
-    private const string PackageSupplier = "Test-Microsoft";
-    private const string PackageName = "CoseSignTool";
-    private const string PackageVersion = "0.0.1";
-    private const string NamespaceBaseUri = "https://base0.uri";
+    internal static readonly string CurrentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+    internal static readonly string DefaultManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
+    internal static readonly string TemporaryDirectory = Path.Combine(CurrentDirectory, "_temp");
+    internal const string PackageSupplier = "Test-Microsoft";
+    internal const string PackageName = "CoseSignTool";
+    internal const string PackageVersion = "0.0.1";
+    internal const string NamespaceBaseUri = "https://base0.uri";
 
-    private Mock<IBuildEngine> buildEngine;
-    private List<BuildErrorEventArgs> errors;
-    private string manifestPath;
-    private GeneratedSbomValidator generatedSbomValidator;
+    internal Mock<IBuildEngine> BuildEngine;
+    internal List<BuildErrorEventArgs> Errors;
+    internal string ManifestPath;
+    internal GeneratedSbomValidator GeneratedSbomValidator;
 
-    private string SbomSpecificationDirectoryName => $"{this.SbomSpecification.Name}_{this.SbomSpecification.Version}";
+    internal string SbomSpecificationDirectoryName => $"{this.SbomSpecification.Name}_{this.SbomSpecification.Version}";
 
     [TestInitialize]
     public void Startup()
     {
         // Setup the build engine
-        this.buildEngine = new Mock<IBuildEngine>();
-        this.errors = new List<BuildErrorEventArgs>();
-        this.buildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => errors.Add(e));
+        this.BuildEngine = new Mock<IBuildEngine>();
+        this.Errors = new List<BuildErrorEventArgs>();
+        this.BuildEngine.Setup(x => x.LogErrorEvent(It.IsAny<BuildErrorEventArgs>())).Callback<BuildErrorEventArgs>(e => Errors.Add(e));
 
         // Clean up the manifest directory
         if (Directory.Exists(DefaultManifestDirectory))
@@ -61,8 +61,8 @@ public abstract class AbstractGenerateSbomTaskTests
             Directory.Delete(TemporaryDirectory, true);
         }
 
-        this.manifestPath = Path.Combine(DefaultManifestDirectory, this.SbomSpecificationDirectoryName, "manifest.spdx.json");
-        this.generatedSbomValidator = new(this.SbomSpecification);
+        this.ManifestPath = Path.Combine(DefaultManifestDirectory, this.SbomSpecificationDirectoryName, "manifest.spdx.json");
+        this.GeneratedSbomValidator = new(this.SbomSpecification);
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -85,7 +85,7 @@ public abstract class AbstractGenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri);
+        this.GeneratedSbomValidator.AssertSbomIsValid(this.ManifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri);
     }
 
     [TestMethod]
@@ -102,7 +102,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -112,8 +112,8 @@ public abstract class AbstractGenerateSbomTaskTests
         // Assert
         Assert.IsTrue(result);
 
-        this.manifestPath = Path.Combine(manifestDirPath, "_manifest", this.SbomSpecificationDirectoryName, "manifest.spdx.json");
-        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri);
+        this.ManifestPath = Path.Combine(manifestDirPath, "_manifest", this.SbomSpecificationDirectoryName, "manifest.spdx.json");
+        this.GeneratedSbomValidator.AssertSbomIsValid(this.ManifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri);
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -150,7 +150,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -174,7 +174,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -198,7 +198,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -225,7 +225,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -234,7 +234,7 @@ public abstract class AbstractGenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri, buildComponentPath: sourceDirectory);
+        this.GeneratedSbomValidator.AssertSbomIsValid(this.ManifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri, buildComponentPath: sourceDirectory);
     }
 
     [TestMethod]
@@ -250,7 +250,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
             NamespaceUriUniquePart = uniqueNamespacePart,
-            BuildEngine = this.buildEngine.Object,
+            BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
 
@@ -259,6 +259,6 @@ public abstract class AbstractGenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri, expectedNamespaceUriUniquePart: uniqueNamespacePart);
+        this.GeneratedSbomValidator.AssertSbomIsValid(this.ManifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSupplier, NamespaceBaseUri, expectedNamespaceUriUniquePart: uniqueNamespacePart);
     }
 }
