@@ -28,14 +28,7 @@ internal class GeneratedSbomValidator
         this.sbomSpecification = sbomSpecification;
     }
 
-    internal void AssertSbomIsValid(string manifestPath,
-        string buildDropPath,
-        string expectedPackageName,
-        string expectedPackageVersion,
-        string expectedPackageSupplier,
-        string expectedNamespaceUriBase,
-        string expectedNamespaceUriUniquePart = null,
-        string buildComponentPath = null)
+    internal void AssertSbomIsValid(string manifestPath, string buildDropPath, string expectedPackageName, string expectedPackageVersion, string expectedPackageSupplier, string expectedNamespaceUriBase, string expectedNamespaceUriUniquePart = null, string buildComponentPath = null)
     {
         Assert.IsTrue(File.Exists(manifestPath));
 
