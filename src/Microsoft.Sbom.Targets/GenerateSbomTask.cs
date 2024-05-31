@@ -135,7 +135,6 @@ public class GenerateSbomTask : Task
 
             if (!(string.IsNullOrEmpty(NamespaceUriUniquePart) || Guid.TryParse(NamespaceUriUniquePart, out var guidResult))) {
                 Log.LogError("SBOM generation failed: NamespaceUriUniquePart must be a valid GUID");
-                Console.WriteLine("SBOM generation failed: NamespaceUriUniquePart must be a valid GUID");
                 return false;
             }
 
