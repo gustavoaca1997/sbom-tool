@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Sbom.Api.Utils;
+using Microsoft.Sbom.Contracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 /// <summary>
@@ -17,8 +18,5 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 [TestClass]
 public class GenerateSbomTaskSPDX_2_2Tests : AbstractGenerateSbomTaskTests
 {
-    public GenerateSbomTaskSPDX_2_2Tests()
-    {
-        this.SbomSpecification = Constants.SPDX22Specification;
-    }
+    internal override SbomSpecification SbomSpecification => Constants.SPDX22Specification;
 }

@@ -24,7 +24,7 @@ namespace Microsoft.Sbom.Targets.Tests;
 [TestClass]
 public abstract class AbstractGenerateSbomTaskTests
 {
-    internal SbomSpecification SbomSpecification;
+    internal abstract SbomSpecification SbomSpecification { get; }
 
     private static readonly string CurrentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
     private static readonly string DefaultManifestDirectory = Path.Combine(CurrentDirectory, "_manifest");
