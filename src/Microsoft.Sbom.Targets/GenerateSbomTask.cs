@@ -6,6 +6,7 @@ namespace Microsoft.Sbom.Targets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.IO;
 using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -121,6 +122,23 @@ public class GenerateSbomTask : Task
     {
         try
         {
+            // Check if all arguments involving paths are rooted
+            if (!Path.IsPathRooted(this.BuildDropPath) ||
+                (!string.IsNullOrEmpty(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath)) ||
+                (!string.IsNullOrEmpty(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath)) ||
+                (!string.IsNullOrEmpty(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile)))
+            {
+                Log.LogError("SBOM generation failed: Unrooted path detected. Please ensure you are specifying full paths for " +
+                    "BuildDropPath, BuildComponentPath, ManifestDirPath, and ExternalDocumentListFile arguments.");
+                return false;
+            }
+
+            if (!(string.IsNullOrEmpty(NamespaceUriUniquePart) || Guid.TryParse(NamespaceUriUniquePart, out var guidResult))) {
+                Log.LogError("SBOM generation failed: NamespaceUriUniquePart must be a valid GUID");
+                Console.WriteLine("SBOM generation failed: NamespaceUriUniquePart must be a valid GUID");
+                return false;
+            }
+
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
             // one is not provided.
