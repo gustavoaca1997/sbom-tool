@@ -31,7 +31,6 @@ public class GenerateSbomTaskTests
 
     private Mock<IBuildEngine> buildEngine;
     private List<BuildErrorEventArgs> errors;
-    private ISBOMValidator sbomValidator;
     private string manifestPath;
     private SbomSpecification sbomSpecification;
     private GeneratedSbomValidator generatedSbomValidator;
@@ -46,13 +45,6 @@ public class GenerateSbomTaskTests
     [TestInitialize]
     public void Startup()
     {
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureServices((host, services) =>
-                services
-                .AddSbomTool())
-            .Build();
-        this.sbomValidator = host.Services.GetRequiredService<ISBOMValidator>();
-
         // Setup the build engine
         this.buildEngine = new Mock<IBuildEngine>();
         this.errors = new List<BuildErrorEventArgs>();
@@ -72,21 +64,6 @@ public class GenerateSbomTaskTests
 
         this.manifestPath = Path.Combine(DefaultManifestDirectory, this.SbomSpecificationDirectoryName, "manifest.spdx.json");
         this.generatedSbomValidator = new(this.sbomSpecification);
-    }
-
-    [TestCleanup]
-    public void Cleanup()
-    {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-        if (File.Exists(this.manifestPath))
-        {
-            Assert.IsTrue(this.sbomValidator.ValidateSbomAsync(
-                CurrentDirectory,
-                TemporaryDirectory,
-                null,
-                manifestDirPath: Path.Combine(this.manifestPath, "..", "..")).GetAwaiter().GetResult().IsSuccess);
-        }
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
     }
 
     [TestMethod]
@@ -135,33 +112,7 @@ public class GenerateSbomTaskTests
         Assert.IsTrue(result);
 
         this.manifestPath = Path.Combine(manifestDirPath, "_manifest", this.SbomSpecificationDirectoryName, "manifest.spdx.json");
-        Assert.IsTrue(File.Exists(manifestPath));
-
-        // Read and parse the manifest
-        var manifestContent = File.ReadAllText(this.manifestPath);
-        var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
-
-        // Check the manifest has expected values
-        var filesValue = manifest["files"];
-        Assert.IsNotNull(filesValue);
-        Assert.IsTrue(filesValue.Count > 0);
-
-        var packagesValue = manifest["packages"];
-        Assert.IsNotNull(packagesValue);
-        Assert.IsTrue(packagesValue.Count == 1);
-
-        var nameValue = manifest["name"];
-        Assert.IsNotNull(nameValue);
-        Assert.AreEqual($"{PackageName} {PackageVersion}", (string)nameValue);
-
-        var creatorsValue = manifest["creationInfo"]["creators"];
-        Assert.IsNotNull(creatorsValue);
-        Assert.IsTrue(creatorsValue.Count > 0);
-        Assert.IsTrue(((string)creatorsValue[0]).Contains(PackageSuplier));
-
-        string namespaceValue = manifest["documentNamespace"];
-        Assert.IsNotNull(namespaceValue);
-        Assert.IsTrue(namespaceValue.Contains($"{NamespaceBaseUri}/{PackageName}/{PackageVersion}"));
+        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSuplier, NamespaceBaseUri);
     }
 
     [TestMethod]
@@ -258,7 +209,7 @@ public class GenerateSbomTaskTests
     public void Sbom_Is_Successfully_Generated_With_Component_Path()
     {
         // Let's generate a SBOM for the current assembly
-        var sourceDirectory = Path.Combine(CurrentDirectory, "..\\..\\..");
+        var sourceDirectory = Path.Combine(CurrentDirectory, "..", "..", "..");
 
         // Arrange
         var task = new GenerateSbomTask
@@ -277,33 +228,7 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(manifestPath));
-
-        // Read and parse the manifest
-        var manifestContent = File.ReadAllText(manifestPath);
-        var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
-
-        // Check the manifest has expected values
-        var filesValue = manifest["files"];
-        Assert.IsNotNull(filesValue);
-        Assert.IsTrue(filesValue.Count > 0);
-
-        var packagesValue = manifest["packages"];
-        Assert.IsNotNull(packagesValue);
-        Assert.IsTrue(packagesValue.Count > 1);
-
-        var nameValue = manifest["name"];
-        Assert.IsNotNull(nameValue);
-        Assert.AreEqual($"{PackageName} {PackageVersion}", (string)nameValue);
-
-        var creatorsValue = manifest["creationInfo"]["creators"];
-        Assert.IsNotNull(creatorsValue);
-        Assert.IsTrue(creatorsValue.Count > 0);
-        Assert.IsTrue(((string)creatorsValue[0]).Contains(PackageSuplier));
-
-        string namespaceValue = manifest["documentNamespace"];
-        Assert.IsNotNull(namespaceValue);
-        Assert.IsTrue(namespaceValue.Contains($"{NamespaceBaseUri}/{PackageName}/{PackageVersion}"));
+        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSuplier, NamespaceBaseUri, buildComponentPath: sourceDirectory);
     }
 
     [TestMethod]
@@ -327,32 +252,6 @@ public class GenerateSbomTaskTests
 
         // Assert
         Assert.IsTrue(result);
-        Assert.IsTrue(File.Exists(manifestPath));
-
-        // Read and parse the manifest
-        var manifestContent = File.ReadAllText(manifestPath);
-        var manifest = JsonConvert.DeserializeObject<dynamic>(manifestContent);
-
-        // Check the manifest has expected values
-        var filesValue = manifest["files"];
-        Assert.IsNotNull(filesValue);
-        Assert.IsTrue(filesValue.Count > 0);
-
-        var packagesValue = manifest["packages"];
-        Assert.IsNotNull(packagesValue);
-        Assert.IsTrue(packagesValue.Count == 1);
-
-        var nameValue = manifest["name"];
-        Assert.IsNotNull(nameValue);
-        Assert.AreEqual($"{PackageName} {PackageVersion}", (string)nameValue);
-
-        var creatorsValue = manifest["creationInfo"]["creators"];
-        Assert.IsNotNull(creatorsValue);
-        Assert.IsTrue(creatorsValue.Count > 0);
-        Assert.IsTrue(((string)creatorsValue[0]).Contains(PackageSuplier));
-
-        string namespaceValue = manifest["documentNamespace"];
-        Assert.IsNotNull(namespaceValue);
-        Assert.AreEqual($"{NamespaceBaseUri}/{PackageName}/{PackageVersion}/{uniqueNamespacePart}", namespaceValue);
+        this.generatedSbomValidator.AssertSbomIsValid(this.manifestPath, CurrentDirectory, PackageName, PackageVersion, PackageSuplier, NamespaceBaseUri, expectedNamespaceUriUniquePart: uniqueNamespacePart);
     }
 }
