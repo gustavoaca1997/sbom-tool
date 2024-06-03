@@ -14,7 +14,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Sbom.Api;
 using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Extensions.DependencyInjection;
-using Microsoft.Sbom.Tool;
 using Microsoft.VisualBasic;
 using PowerArgs;
 using Serilog.Events;
