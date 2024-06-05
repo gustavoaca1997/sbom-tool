@@ -1,0 +1,55 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- TODO remove hardcoded str, reference this assembly using MSBuild props instead -->
+
+    <!--TODO we will eventaully want to replace or remove `AfterTargets="Build"`.
+        Including this line means that this code will run at the end of `dotnet build`s of any project that this .targets
+        file is imported to (see line 24 of Microsoft.Sbom.Targets.csproj as an example of importing this file). This is
+        good for testing purposes, but not the behavior we ultimately want. 
+        We will need to discuss with the .NET SDK team if they want this target to be automatically included after any
+        target and if so, which one. They likely know of a nuget packaging target that it would make sense to hook this in with.-->
+  <PropertyGroup>
+    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net6.0' ">net6.0</GenerateSbomTask_TFM>
+    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net8.0' ">net8.0</GenerateSbomTask_TFM>
+  </PropertyGroup>
+  <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\$(GenerateSbomTask_TFM)\Microsoft.Sbom.Targets.dll" />
+
+<PropertyGroup>
+        <!-- TODO in practice these will default to existing nuget props instead of these test values.
+            Need to consult with .NET SDK/ PM team for which existing props will make sense as defaults. -->
+        <SbomGenerationBuildDropPath>$(OutputPath)</SbomGenerationBuildDropPath>
+        <SbomGenerationBuildComponentPath>$(MSBuildProjectDirectory)</SbomGenerationBuildComponentPath>
+        <SbomGenerationPackageSupplier>test-supplier</SbomGenerationPackageSupplier>
+        <SbomGenerationPackageName>test-name</SbomGenerationPackageName>
+        <SbomGenerationPackageVersion>1.0.0</SbomGenerationPackageVersion>
+        <SbomGenerationNamespaceBaseUri>http://spdx.org/spdxdocs/$(SbomGenerationPackageName)</SbomGenerationNamespaceBaseUri>
+        <SbomGenerationNamespaceUriUniquePart></SbomGenerationNamespaceUriUniquePart>
+        <SbomGenerationExternalDocumentReferenceListFile></SbomGenerationExternalDocumentReferenceListFile>
+        <SbomGenerationFetchLicenseInformation>false</SbomGenerationFetchLicenseInformation>
+        <SbomGenerationEnablePackageMetadataParsing>false</SbomGenerationEnablePackageMetadataParsing>
+        <SbomGenerationVerbosity>LogAlways</SbomGenerationVerbosity>
+        <SbomGenerationManifestInfo></SbomGenerationManifestInfo>
+        <SbomGenerationDeleteManifestDirIfPresent>true</SbomGenerationDeleteManifestDirIfPresent>
+        <SbomGenerationManifestDirPath></SbomGenerationManifestDirPath>
+    </PropertyGroup>
+  
+  <Target Name="GenerateSbom" AfterTargets="Build">
+        <GenerateSbomTask
+            BuildDropPath="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\bin\Release\net8.0)"
+            BuildComponentPath="$(SbomGenerationBuildComponentPath)"
+            PackageSupplier="$(SbomGenerationPackageSupplier)"
+            PackageName="$(SbomGenerationPackageName)"
+            PackageVersion="$(SbomGenerationPackageVersion)"
+            NamespaceBaseUri="$(SbomGenerationNamespaceBaseUri)"
+            NamespaceUriUniquePart="$(SbomGenerationNamespaceUriUniquePart)"
+            ExternalDocumentListFile="$(SbomGenerationExternalDocumentReferenceListFile)"
+            FetchLicenseInformation="$(SbomGenerationFetchLicenseInformation)"
+            EnablePackageMetadataParsing="$(SbomGenerationEnablePackageMetadataParsing)"
+            Verbosity="$(SbomGenerationVerbosity)"
+            ManifestInfo="$(SbomGenerationManifestInfo)"
+            DeleteManifestDirIfPresent="$(SbomGenerationDeleteManifestDirIfPresent)"
+            ManifestDirPath="$(SbomGenerationManifestDirPath)">
+            <Output TaskParameter="SbomPath" PropertyName="SbomPathResult" />
+        </GenerateSbomTask> 
+        <Message Importance="High" Text="Task result: $(SbomPathResult)" />
+    </Target>
+</Project>
