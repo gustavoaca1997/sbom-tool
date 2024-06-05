@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <AssemblyName>Microsoft.Sbom.Targets</AssemblyName>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <IsPublishable>true</IsPublishable>
     <IsPackable>true</IsPackable>
+    <SelfContained>true</SelfContained>
     <Version>1.0.0</Version>
     <Title>GenerateSbomTask</Title>
     <Description>Tasks and targets for running the SBOM tool.</Description>
@@ -43,12 +45,12 @@
     <!-- these lines pack the build props/targets files to the `build` folder in the generated package.
         by convention, the .NET SDK will look for build\<Package Id>.props and build\<Package Id>.targets
         for automatic inclusion in the build. -->
-    <Content Include="SbomExecution.props" PackagePath="\" />
-    <Content Include="SbomExecution.targets" PackagePath="\" />
+    <Content Include="Microsoft.Sbom.Targets.props" PackagePath="\build" />
+    <Content Include="Microsoft.Sbom.Targets.targets" PackagePath="\build" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime"/>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" ExcludeAssets="Runtime" />
   </ItemGroup>
 
   <ItemGroup>
