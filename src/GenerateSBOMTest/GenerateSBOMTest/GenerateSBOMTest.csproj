@@ -8,8 +8,12 @@
   </PropertyGroup>
 
   <!--<Import Project="D:\sbom-tool\src\Microsoft.Sbom.Targets\SbomExecution.props" />
-  <Import Project="D:\sbom-tool\src\Microsoft.Sbom.Targets\SbomExecution.targets" />-->
-  <Import Project="D:\sbom-tool\src\Microsoft.Sbom.Targets\bin\Release\Microsoft.Sbom.Targets.0.0.0-preview.0.228\SbomExecution.props" />
-  <Import Project="D:\sbom-tool\src\Microsoft.Sbom.Targets\bin\Release\Microsoft.Sbom.Targets.0.0.0-preview.0.228\SbomExecution.targets" />
+  <Import Project="D:\sbom-tool\src\Microsoft.Sbom.Targets\SbomExecution.targets" />
+  <Import Project="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\SbomExecution.props" />
+  <Import Project="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\SbomExecution.targets" />-->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Sbom.Targets" />
+  </ItemGroup>
 
 </Project>
