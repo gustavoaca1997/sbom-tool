@@ -123,18 +123,13 @@ public class GenerateSbomTask : Task
         try
         {
             // Check if all arguments involving paths are rooted
-            if (!Path.IsPathRooted(this.BuildDropPath) ||
-                (!string.IsNullOrEmpty(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath)) ||
-                (!string.IsNullOrEmpty(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath)) ||
-                (!string.IsNullOrEmpty(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile)))
+            if (!ValidateRootedPaths())
             {
-                Log.LogError("SBOM generation failed: Unrooted path detected. Please ensure you are specifying full paths for " +
-                    "BuildDropPath, BuildComponentPath, ManifestDirPath, and ExternalDocumentListFile arguments.");
                 return false;
             }
 
-            if (!(string.IsNullOrEmpty(NamespaceUriUniquePart) || Guid.TryParse(NamespaceUriUniquePart, out var guidResult))) {
-                Log.LogError("SBOM generation failed: NamespaceUriUniquePart must be a valid GUID");
+            if (!(string.IsNullOrEmpty(this.NamespaceUriUniquePart) || Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult))) {
+                Log.LogError($"SBOM generation failed: NamespaceUriUniquePart '{this.NamespaceUriUniquePart}' must be a valid GUID.");
                 return false;
             }
 
@@ -174,6 +169,43 @@ public class GenerateSbomTask : Task
             Log.LogError($"SBOM generation failed: {e.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Ensure all arguments that accept paths are rooted.
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateRootedPaths()
+    {
+        if (!Path.IsPathRooted(this.BuildDropPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildDropPath)}. " +
+                $"Current value is {this.BuildDropPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildComponentPath)}. " +
+                $"Current value is {this.BuildComponentPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ManifestDirPath)}. " +
+                $"Current value is {this.ManifestDirPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ExternalDocumentListFile)}. " +
+                $"Current value is {this.ExternalDocumentListFile}");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>

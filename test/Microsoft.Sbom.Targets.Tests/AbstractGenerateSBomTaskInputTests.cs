@@ -166,7 +166,7 @@ public abstract class AbstractGenerateSBomTaskInputTests
     /// </summary>
     [TestMethod]
     [DynamicData(nameof(GetUnrootedPathTestData), DynamicDataSourceType.Method)]
-    public void Sbom_Fails_With_Unrooted_Paths_BuildDropPath(
+    public void Sbom_Fails_With_Unrooted_Paths(
         string buildDropPath,
         string buildComponentPath,
         string manifestDirPath,
