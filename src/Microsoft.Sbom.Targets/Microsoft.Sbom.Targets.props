@@ -9,7 +9,7 @@
   <PropertyGroup>
         <!-- TODO in practice these will default to existing nuget props instead of these test values.
             Need to consult with .NET SDK/ PM team for which existing props will make sense as defaults. -->
-        <SbomGenerationBuildDropPath>$(OutputPath)</SbomGenerationBuildDropPath>
+        <SbomGenerationBuildDropPath>C:\Users\gustavoca\Repos\github\sbom-test\src\GenerateSBOMTest\GenerateSBOMTest\bin\Debug\net8.0</SbomGenerationBuildDropPath>
         <SbomGenerationBuildComponentPath>$(MSBuildProjectDirectory)</SbomGenerationBuildComponentPath>
         <SbomGenerationPackageSupplier>test-supplier</SbomGenerationPackageSupplier>
         <SbomGenerationPackageName>test-name</SbomGenerationPackageName>
@@ -20,7 +20,7 @@
         <SbomGenerationFetchLicenseInformation>false</SbomGenerationFetchLicenseInformation>
         <SbomGenerationEnablePackageMetadataParsing>false</SbomGenerationEnablePackageMetadataParsing>
         <SbomGenerationVerbosity>LogAlways</SbomGenerationVerbosity>
-        <SbomGenerationManifestInfo></SbomGenerationManifestInfo>
+        <SbomGenerationManifestInfo Condition=" '$(SbomGenerationManifestInfo)' == '' ">SPDX:2.2</SbomGenerationManifestInfo>
         <SbomGenerationDeleteManifestDirIfPresent>true</SbomGenerationDeleteManifestDirIfPresent>
         <SbomGenerationManifestDirPath></SbomGenerationManifestDirPath>
     </PropertyGroup>
