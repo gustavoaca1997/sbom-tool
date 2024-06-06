@@ -18,7 +18,7 @@
             PackageSupplier="$(SbomGenerationPackageSupplier)"
             PackageName="$(SbomGenerationPackageName)"
             PackageVersion="$(SbomGenerationPackageVersion)"
-            NamespaceBaseUri="$(SbomGenerationNamespaceBaseUri)"
+            NamespaceUriBase="$(SbomGenerationNamespaceUriBase)"
             NamespaceUriUniquePart="$(SbomGenerationNamespaceUriUniquePart)"
             ExternalDocumentListFile="$(SbomGenerationExternalDocumentReferenceListFile)"
             FetchLicenseInformation="$(SbomGenerationFetchLicenseInformation)"

@@ -17,6 +17,7 @@
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.10.4" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.10.4" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="0.0.0-preview.0.229" />
+    <PackageVersion Include="Microsoft.Sbom.Tool" Version="2.2.6" />
     <PackageVersion Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageVersion Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageVersion Include="Microsoft.ComponentDetection.Common" Version="$(ComponentDetectionPackageVersion)" />

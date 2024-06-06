@@ -5,7 +5,10 @@ namespace Microsoft.Sbom.Targets;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -51,7 +54,7 @@ public class GenerateSbomTask : Task
     /// The base path of the SBOM namespace uri.
     /// </summary>
     [Required]
-    public string NamespaceBaseUri { get; set; }
+    public string NamespaceUriBase { get; set; }
 
         /// <summary>
     /// The path to the directory containing build components and package information.
@@ -78,7 +81,7 @@ public class GenerateSbomTask : Task
     /// <summary>
     /// If true, it will parse licensing and supplier information from a packages metadata file.
     /// </summary>
-    public bool EnablePackageMetadataParsing { get; set; }
+    public bool EnablePackageMetadataParsing { get; set; } = false;
 
     /// <summary>
     /// Determines how detailed the outputed logging will be.
@@ -104,51 +107,20 @@ public class GenerateSbomTask : Task
     [Output]
     public string SbomPath { get; set; }
 
-    private ISBOMGenerator Generator { get; set; }
-
-    public GenerateSbomTask()
-    {
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureServices((host, services) =>
-                services
-                .AddSbomTool())
-            .Build();
-        this.Generator = host.Services.GetRequiredService<ISBOMGenerator>();
-    }
-
     public override bool Execute()
     {
         try
         {
-            // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
-            // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
-            // one is not provided.
-            var sbomMetadata = new SBOMMetadata
-            {
-                PackageSupplier = this.PackageSupplier,
-                PackageName = this.PackageName,
-                PackageVersion = this.PackageVersion,
-            };
-            var runtimeConfiguration = new RuntimeConfiguration
-            {
-                NamespaceUriBase = this.NamespaceBaseUri,
-                NamespaceUriUniquePart = this.NamespaceUriUniquePart,
-                DeleteManifestDirectoryIfPresent = this.DeleteManifestDirIfPresent,
-                Verbosity = ValidateAndAssignVerbosity()
-            };
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            var result = System.Threading.Tasks.Task.Run(() => this.Generator.GenerateSbomAsync(
-                rootPath: this.BuildDropPath,
-                manifestDirPath: this.ManifestDirPath,
-                metadata: sbomMetadata,
-                componentPath: this.BuildComponentPath,
-                runtimeConfiguration: runtimeConfiguration,
-                specifications: ValidateAndAssignSpecifications(),
-                externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+            var process = this.StartProcess();
 
             SbomPath = "path/to/sbom";
-            return result.IsSuccessful;
+
+            var standardOutput = process.StandardOutput.ReadToEnd();
+            var standardError = process.StandardError.ReadToEnd();
+            this.Log.LogMessage(standardOutput);
+            this.Log.LogError(standardError);
+
+            return process.ExitCode == 0;
         }
         catch (Exception e)
         {
@@ -158,27 +130,67 @@ public class GenerateSbomTask : Task
         }
     }
 
+    private Process StartProcess()
+    {
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Microsoft.Sbom.Tool.exe"),
+            WorkingDirectory = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)),
+            Arguments = GetArguments(),
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+
+        return Process.Start(processStartInfo);
+    }
+
+    private string GetArguments()
+    {
+        // Construct the arguments string based on the properties of this class
+        var arguments = $"generate /{nameof(BuildDropPath)}:\"{BuildDropPath}\" " +
+                           $"/{nameof(PackageSupplier)}:\"{PackageSupplier}\" " +
+                           $"/{nameof(PackageName)}:\"{PackageName}\" " +
+                           $"/{nameof(PackageVersion)}:\"{PackageVersion}\" " +
+                           $"/{nameof(NamespaceUriBase)}:\"{NamespaceUriBase}\" " +
+                           this.GetOptionalArgument(nameof(BuildComponentPath), BuildComponentPath) +
+                           this.GetOptionalArgument(nameof(NamespaceUriUniquePart), NamespaceUriUniquePart) +
+                           this.GetOptionalArgument(nameof(ExternalDocumentListFile), ExternalDocumentListFile) +
+                           $"/{nameof(FetchLicenseInformation)}:{(FetchLicenseInformation ? "true" : "false")} " +
+                           $"/{nameof(EnablePackageMetadataParsing)}:{(EnablePackageMetadataParsing ? "true" : "false")} " +
+                           $"/{nameof(Verbosity)}:\"{this.ValidateAndAssignVerbosity()}\" " +
+                           $"/{nameof(ManifestInfo)}:\"{ManifestInfo}\" " +
+                           $"/{nameof(DeleteManifestDirIfPresent)}:{(DeleteManifestDirIfPresent ? "true" : "false")} " +
+                           this.GetOptionalArgument(nameof(ManifestDirPath), ManifestDirPath);
+
+        return arguments;
+    }
+
+    private string GetOptionalArgument(string argumentName, string argumentValue)
+    {
+        return !string.IsNullOrWhiteSpace(argumentValue) ? $"/{argumentName}:\"{argumentValue}\" " : string.Empty;
+    }
+
     /// <summary>
     /// Checks the user's input for Verbosity and assigns the
     /// associated EventLevel value for logging.
     /// </summary>
-    private EventLevel ValidateAndAssignVerbosity()
+    private LogEventLevel ValidateAndAssignVerbosity()
     {
         if (string.IsNullOrEmpty(this.Verbosity))
         {
-            Log.LogMessage($"No verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
-            return EventLevel.LogAlways;
+            Log.LogMessage($"No verbosity level specified. Setting verbosity level at \"{LogEventLevel.Verbose}\"");
+            return LogEventLevel.Verbose;
         }
 
-        if (Enum.TryParse(this.Verbosity, true, out EventLevel eventLevel)) {
+        if (Enum.TryParse(this.Verbosity, true, out LogEventLevel eventLevel)) {
             return eventLevel;
         }
 
         Log.LogMessage($"Unrecognized verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
-        return EventLevel.LogAlways;
+        return LogEventLevel.Verbose;
     }
 
-    /// <summary>
+/*    /// <summary>
     /// Check for ManifestInfo and create an SbomSpecification accordingly
     /// </summary>
     /// <returns></returns>
@@ -190,5 +202,5 @@ public class GenerateSbomTask : Task
         }
 
         return null;
-    }
+    }*/
 }

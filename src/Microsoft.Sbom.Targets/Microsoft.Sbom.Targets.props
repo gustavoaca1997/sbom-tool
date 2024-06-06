@@ -5,7 +5,6 @@
       <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net8.0' ">net8.0</GenerateSbomTask_TFM>
   </PropertyGroup>
   <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\$(GenerateSbomTask_TFM)\Microsoft.Sbom.Targets.dll" />
-
   <PropertyGroup>
         <!-- TODO in practice these will default to existing nuget props instead of these test values.
             Need to consult with .NET SDK/ PM team for which existing props will make sense as defaults. -->
@@ -14,7 +13,7 @@
         <SbomGenerationPackageSupplier>test-supplier</SbomGenerationPackageSupplier>
         <SbomGenerationPackageName>test-name</SbomGenerationPackageName>
         <SbomGenerationPackageVersion>1.0.0</SbomGenerationPackageVersion>
-        <SbomGenerationNamespaceBaseUri>http://spdx.org/spdxdocs/$(SbomGenerationPackageName)</SbomGenerationNamespaceBaseUri>
+        <SbomGenerationNamespaceUriBase>http://spdx.org/spdxdocs/$(SbomGenerationPackageName)</SbomGenerationNamespaceUriBase>
         <SbomGenerationNamespaceUriUniquePart></SbomGenerationNamespaceUriUniquePart>
         <SbomGenerationExternalDocumentReferenceListFile></SbomGenerationExternalDocumentReferenceListFile>
         <SbomGenerationFetchLicenseInformation>false</SbomGenerationFetchLicenseInformation>

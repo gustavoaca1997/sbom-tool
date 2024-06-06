@@ -75,7 +75,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -101,7 +101,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -126,7 +126,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -149,7 +149,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -173,7 +173,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -197,7 +197,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -224,7 +224,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),
         };
@@ -248,7 +248,7 @@ public abstract class AbstractGenerateSbomTaskTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = NamespaceBaseUri,
+            NamespaceUriBase = NamespaceBaseUri,
             NamespaceUriUniquePart = uniqueNamespacePart,
             BuildEngine = this.BuildEngine.Object,
             ManifestInfo = this.SbomSpecification.ToString(),

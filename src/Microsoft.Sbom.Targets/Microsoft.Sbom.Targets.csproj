@@ -6,7 +6,7 @@
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <IsPublishable>true</IsPublishable>
     <IsPackable>true</IsPackable>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
     <Version>1.0.0</Version>
     <Title>GenerateSbomTask</Title>
     <Description>Tasks and targets for running the SBOM tool.</Description>
@@ -23,6 +23,8 @@
     <!-- Suppress NuGet warning NU5128. -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <GenerateDependencyFile>true</GenerateDependencyFile>
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <PackageCopyToOutput>true</PackageCopyToOutput>
   </PropertyGroup>
 
   <!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->
@@ -55,8 +57,20 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Sbom.Extensions.DependencyInjection\Microsoft.Sbom.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="..\Microsoft.Sbom.Tool\Microsoft.Sbom.Tool.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetMyPackageFiles</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="GetMyPackageFiles">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.Sbom.Tool.*">
+        <TargetPath>MicrosoftSbomTool</TargetPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
 <!-- TODO temp for testing 
 
     Eventually the .NET SDK team will add logic similar to this when integrating with the nuget package we produce. 
