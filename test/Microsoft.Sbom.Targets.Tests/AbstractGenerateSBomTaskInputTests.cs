@@ -62,7 +62,8 @@ public abstract class AbstractGenerateSBomTaskInputTests
     [TestMethod]
     [DynamicData(nameof(GetNullRequiredParamsData), DynamicDataSourceType.Method)]
     [DynamicData(nameof(GetEmptyRequiredParamsData), DynamicDataSourceType.Method)]
-    public void Sbom_Fails_With_Null_And_Empty_Required_Params(
+    [DynamicData(nameof(GetWhiteSpace_Tabs_NewLineParamsData), DynamicDataSourceType.Method)]
+    public void Sbom_Fails_With_Null_Empty_And_WhiteSpace_Required_Params(
         string buildDropPath,
         string packageSupplier,
         string packageName,
@@ -106,12 +107,27 @@ public abstract class AbstractGenerateSBomTaskInputTests
         yield return new object[] { CurrentDirectory, PackageSupplier, PackageName, PackageVersion, string.Empty };
     }
 
+    private static IEnumerable<object[]> GetWhiteSpace_Tabs_NewLineParamsData()
+    {
+        yield return new object[] { " ", PackageSupplier, PackageName, PackageVersion, NamespaceBaseUri };
+        yield return new object[] { CurrentDirectory, "\n", PackageName, PackageVersion, NamespaceBaseUri };
+        yield return new object[] { CurrentDirectory, PackageSupplier, "\t", PackageVersion, NamespaceBaseUri };
+        yield return new object[] { CurrentDirectory, PackageSupplier, PackageName, " \n \t \n \t \n    ", NamespaceBaseUri };
+        yield return new object[] { CurrentDirectory, PackageSupplier, PackageName, PackageVersion, "\t \t \t   " };
+    }
+
     /// <summary>
     /// Test for ensuring the GenerateSbomTask fails when user provides an
     /// invalid URI format.
     /// </summary>
     [TestMethod]
-    public void Sbom_Fails_With_Invalid_NamespaceBaseUri()
+    [DataRow("incorrectly_formatted_uri.com")] // Missing protocol
+    [DataRow("http://invalid.com:70000")] // Invalid port
+    [DataRow("http://inv\nalid.com")] // Contains new line character
+    [DataRow("http://invalid.com/path with spaces")] // Contains spaces
+    [DataRow("http:invalid.com")] // Missing // after protocol
+    [DataRow("http://")] // Missing domain
+    public void Sbom_Fails_With_Invalid_NamespaceBaseUri(string namespaceBaseUri)
     {
         // Arrange
         var task = new GenerateSbomTask
@@ -120,7 +136,7 @@ public abstract class AbstractGenerateSBomTaskInputTests
             PackageSupplier = PackageSupplier,
             PackageName = PackageName,
             PackageVersion = PackageVersion,
-            NamespaceBaseUri = "incorrectly_formatted_uri.com",
+            NamespaceBaseUri = namespaceBaseUri,
             ManifestInfo = this.SbomSpecification.ToString(),
             BuildEngine = this.buildEngine.Object
         };
@@ -137,7 +153,14 @@ public abstract class AbstractGenerateSBomTaskInputTests
     /// an invalid GUID for NamespaceUriUniquePart.
     /// </summary>
     [TestMethod]
-    public void Sbom_Generation_Fails_For_Invalid_NamespaceUriUniquePart()
+    [DataRow("-1")] // starts with hyphen
+    [DataRow("1234567890")] // Too less digits
+    [DataRow("12345678-1234-1234-1234-123456789abcd")] // Too many digits
+    [DataRow("12345678-1234-1234-1234-123456789abg")] // invalid character g
+    [DataRow("12345678-1234-1234-1234-123456789ab!")] // invalid character !
+    [DataRow("12345678-1234-1234-1234-123456789ab")] // Too less digits
+    [DataRow("12345678-1234-1234-1234-123456789ac-")] // Ends with a hyphen
+    public void Sbom_Generation_Fails_For_Invalid_NamespaceUriUniquePart(string namespaceUriUniquePart)
     {
         // Arrange
         var task = new GenerateSbomTask
@@ -147,7 +170,7 @@ public abstract class AbstractGenerateSBomTaskInputTests
             PackageName = PackageName,
             PackageVersion = PackageVersion,
             NamespaceBaseUri = NamespaceBaseUri,
-            NamespaceUriUniquePart = "-1",
+            NamespaceUriUniquePart = namespaceUriUniquePart,
             ManifestInfo = this.SbomSpecification.ToString(),
             BuildEngine = this.buildEngine.Object
         };
@@ -196,10 +219,10 @@ public abstract class AbstractGenerateSBomTaskInputTests
 
     private static IEnumerable<object[]> GetUnrootedPathTestData()
     {
-        yield return new object[] { "../../", BuildComponentPath, DefaultManifestDirectory, ExternalDocumentListFile };
-        yield return new object[] { CurrentDirectory, "../../", DefaultManifestDirectory, ExternalDocumentListFile };
-        yield return new object[] { CurrentDirectory, BuildComponentPath, "../../", ExternalDocumentListFile };
-        yield return new object[] { CurrentDirectory, BuildComponentPath, DefaultManifestDirectory, "../../" };
+        yield return new object[] { Path.Combine("..", ".."), BuildComponentPath, DefaultManifestDirectory, ExternalDocumentListFile };
+        yield return new object[] { CurrentDirectory, Path.Combine("..", ".."), DefaultManifestDirectory, ExternalDocumentListFile };
+        yield return new object[] { CurrentDirectory, BuildComponentPath, Path.Combine("..", ".."), ExternalDocumentListFile };
+        yield return new object[] { CurrentDirectory, BuildComponentPath, DefaultManifestDirectory, Path.Combine("..", "..") };
     }
 
     /// <summary>

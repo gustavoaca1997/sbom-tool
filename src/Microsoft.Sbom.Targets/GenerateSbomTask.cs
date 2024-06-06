@@ -122,13 +122,14 @@ public class GenerateSbomTask : Task
     {
         try
         {
-            // Check if all arguments involving paths are rooted
-            if (!ValidateRootedPaths())
+            // Validate required args and args that take paths as input.
+            if (!ValidateRequiredParams() || !ValidateRootedPaths())
             {
                 return false;
             }
 
-            if (!(string.IsNullOrEmpty(this.NamespaceUriUniquePart) || Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult))) {
+            if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart) && !Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult))
+            {
                 Log.LogError($"SBOM generation failed: NamespaceUriUniquePart '{this.NamespaceUriUniquePart}' must be a valid GUID.");
                 return false;
             }
@@ -172,6 +173,46 @@ public class GenerateSbomTask : Task
     }
 
     /// <summary>
+    /// Ensure all required arguments are non-null/empty,
+    /// and do not contain whitespaces, tabs, or newline characters.
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateRequiredParams()
+    {
+        if (string.IsNullOrWhiteSpace(this.BuildDropPath))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.BuildDropPath)}. Please provide a valid path.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageSupplier))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageSupplier)}. Please provide a valid supplier name.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageName))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageName)}. Please provide a valid name.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageVersion))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageVersion)}. Please provide a valid version number.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.NamespaceBaseUri))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.NamespaceBaseUri)}. Please provide a valid URI.");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Ensure all arguments that accept paths are rooted.
     /// </summary>
     /// <returns></returns>
@@ -184,21 +225,21 @@ public class GenerateSbomTask : Task
             return false;
         }
 
-        if (!string.IsNullOrEmpty(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath))
+        if (!string.IsNullOrWhiteSpace(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath))
         {
             Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildComponentPath)}. " +
                 $"Current value is {this.BuildComponentPath}");
             return false;
         }
 
-        if (!string.IsNullOrEmpty(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath))
+        if (!string.IsNullOrWhiteSpace(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath))
         {
             Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ManifestDirPath)}. " +
                 $"Current value is {this.ManifestDirPath}");
             return false;
         }
 
-        if (!string.IsNullOrEmpty(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile))
+        if (!string.IsNullOrWhiteSpace(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile))
         {
             Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ExternalDocumentListFile)}. " +
                 $"Current value is {this.ExternalDocumentListFile}");
@@ -214,7 +255,7 @@ public class GenerateSbomTask : Task
     /// </summary>
     private EventLevel ValidateAndAssignVerbosity()
     {
-        if (string.IsNullOrEmpty(this.Verbosity))
+        if (string.IsNullOrWhiteSpace(this.Verbosity))
         {
             Log.LogMessage($"No verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
             return EventLevel.LogAlways;
