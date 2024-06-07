@@ -13,10 +13,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Sbom.Api;
 using Microsoft.Sbom.Api.Manifest;
+using Microsoft.Sbom.Api.Manifest.ManifestConfigHandlers;
+using Microsoft.Sbom.Api.Metadata;
 using Microsoft.Sbom.Api.Providers;
+using Microsoft.Sbom.Api.Providers.ExternalDocumentReferenceProviders;
+using Microsoft.Sbom.Api.Providers.FilesProviders;
 using Microsoft.Sbom.Api.Providers.PackagesProviders;
 using Microsoft.Sbom.Contracts;
+using Microsoft.Sbom.Contracts.Entities;
+using Microsoft.Sbom.Contracts.Interfaces;
+using Microsoft.Sbom.Extensions;
 using Microsoft.Sbom.Extensions.DependencyInjection;
+using Microsoft.Sbom.Parsers.Spdx22SbomParser;
 using Microsoft.VisualBasic;
 using PowerArgs;
 using Serilog.Events;
@@ -115,11 +123,24 @@ public class GenerateSbomTask : Task
             .ConfigureServices((host, services) =>
                 services
                 .AddSbomTool()
-                /* Manually adding the Sources Providers that support <see cref="ProviderType.Packages"/>
-                 * since `AddSbomTool()` does not add them when running the MSBuild Task from another project.
+                /* Manually adding some dependencies since `AddSbomTool()` does not add them when
+                 * running the MSBuild Task from another project.
                  */
                 .AddSingleton<ISourcesProvider, SBOMPackagesProvider>()
-                .AddSingleton<ISourcesProvider, CGScannedPackagesProvider>())
+                .AddSingleton<ISourcesProvider, CGExternalDocumentReferenceProvider>()
+                .AddSingleton<ISourcesProvider, DirectoryTraversingFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, ExternalDocumentReferenceFileProvider>()
+                .AddSingleton<ISourcesProvider, ExternalDocumentReferenceProvider>()
+                .AddSingleton<ISourcesProvider, FileListBasedFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, SbomFileBasedFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, CGScannedExternalDocumentReferenceFileProvider>()
+                .AddSingleton<ISourcesProvider, CGScannedPackagesProvider>()
+                .AddSingleton<IAlgorithmNames, AlgorithmNames>()
+                .AddSingleton<IManifestGenerator, Generator>()
+                .AddSingleton<IMetadataProvider, LocalMetadataProvider>()
+                .AddSingleton<IMetadataProvider, SBOMApiMetadataProvider>()
+                .AddSingleton<IManifestInterface, Validator>()
+                .AddSingleton<IManifestConfigHandler, SPDX22ManifestConfigHandler>())
             .Build();
         this.Generator = host.Services.GetRequiredService<ISBOMGenerator>();
     }
