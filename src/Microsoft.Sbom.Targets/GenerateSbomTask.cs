@@ -12,6 +12,9 @@ using Microsoft.Build.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Sbom.Api;
+using Microsoft.Sbom.Api.Manifest;
+using Microsoft.Sbom.Api.Providers;
+using Microsoft.Sbom.Api.Providers.PackagesProviders;
 using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Extensions.DependencyInjection;
 using Microsoft.VisualBasic;
@@ -111,7 +114,12 @@ public class GenerateSbomTask : Task
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((host, services) =>
                 services
-                .AddSbomTool())
+                .AddSbomTool()
+                /* Manually adding the Sources Providers that support <see cref="ProviderType.Packages"/>
+                 * since `AddSbomTool()` does not add them when running the MSBuild Task from another project.
+                 */
+                .AddSingleton<ISourcesProvider, SBOMPackagesProvider>()
+                .AddSingleton<ISourcesProvider, CGScannedPackagesProvider>())
             .Build();
         this.Generator = host.Services.GetRequiredService<ISBOMGenerator>();
     }
