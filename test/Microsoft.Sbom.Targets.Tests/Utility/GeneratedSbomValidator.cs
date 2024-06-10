@@ -88,7 +88,7 @@ internal class GeneratedSbomValidator
 
             if (expectedNamespaceUriUniquePart != null)
             {
-                Assert.IsTrue(namespaceValue.Equals($"{expectedNamespaceUriBase}/{expectedPackageName}/{expectedPackageVersion}/{expectedNamespaceUriUniquePart}", StringComparison.InvariantCultureIgnoreCase));
+                Assert.IsTrue(namespaceValue.Equals($"{expectedNamespaceUriBase}/{expectedPackageName}/{expectedPackageVersion}/{expectedNamespaceUriUniquePart.Trim()}", StringComparison.InvariantCultureIgnoreCase));
             }
             else
             {

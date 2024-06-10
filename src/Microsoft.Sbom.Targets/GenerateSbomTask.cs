@@ -7,18 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
-using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Sbom.Api;
 using Microsoft.Sbom.Contracts;
 using Microsoft.Sbom.Extensions.DependencyInjection;
-using Microsoft.Sbom.Tool;
-using Microsoft.VisualBasic;
-using PowerArgs;
-using Serilog.Events;
 
 public class GenerateSbomTask : Task
 {
@@ -123,16 +117,13 @@ public class GenerateSbomTask : Task
         try
         {
             // Validate required args and args that take paths as input.
-            if (!ValidateRequiredParams() || !ValidateRootedPaths())
+            if (!ValidateRequiredParams() || !ValidateRootedPaths() || !ValidateAndSanitizeNamespaceUriUniquePart())
             {
                 return false;
             }
 
-            if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart) && !Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult))
-            {
-                Log.LogError($"SBOM generation failed: NamespaceUriUniquePart '{this.NamespaceUriUniquePart}' must be a valid GUID.");
-                return false;
-            }
+            // Sanitize package name, supplier, and version arguments
+            SanitizeBaselineArgs();
 
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
@@ -170,6 +161,22 @@ public class GenerateSbomTask : Task
             Log.LogError($"SBOM generation failed: {e.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Sanitize arguments that are considered the "coordinates" of
+    /// an SBOM, such as package name, version, and supplier information.
+    /// </summary>
+    private void SanitizeBaselineArgs()
+    {
+        this.PackageSupplier = Remove_Spaces_Tabs_Newlines(this.PackageSupplier);
+        this.PackageName = Remove_Spaces_Tabs_Newlines(this.PackageName);
+        this.PackageVersion = Remove_Spaces_Tabs_Newlines(this.PackageVersion);
+    }
+
+    private string Remove_Spaces_Tabs_Newlines(string value)
+    {
+        return value.Replace("\n", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty);
     }
 
     /// <summary>
@@ -281,5 +288,27 @@ public class GenerateSbomTask : Task
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Ensure a valid NamespaceUriUniquePart is provided
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateAndSanitizeNamespaceUriUniquePart()
+    {
+        // Ensure the NamespaceUriUniquePart is valid if provided.
+        if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart)
+            && (!Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult)
+            || this.NamespaceUriUniquePart.Equals(Guid.Empty.ToString())))
+        {
+            Log.LogError($"SBOM generation failed: NamespaceUriUniquePart '{this.NamespaceUriUniquePart}' must be a valid unique GUID.");
+            return false;
+        }
+        else if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart))
+        {
+            this.NamespaceUriUniquePart = this.NamespaceUriUniquePart.Trim();
+        }
+
+        return true;
     }
 }
