@@ -11,7 +11,7 @@
   <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\$(GenerateSbomTask_TFM)\Microsoft.Sbom.Targets.dll" />
   <Import Project="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\Microsoft.Sbom.Targets.props" />
   
-  <Target Name="GenerateSbom" AfterTargets="Build">
+  <Target Name="GenerateSbomTarget" AfterTargets="Build" Condition=" '$(GenerateSBOM)' ==  'true'">
         <GenerateSbomTask
             BuildDropPath="$(SbomGenerationBuildDropPath)"
             BuildComponentPath="$(SbomGenerationBuildComponentPath)"

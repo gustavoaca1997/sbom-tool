@@ -149,6 +149,7 @@ public class GenerateSbomTask : Task
     {
         try
         {
+            //this.Log.LogWarning($"BuildDropPath: {BuildDropPath}; BuildComponentPath: {BuildComponentPath}; PackageSupplier: {PackageSupplier};\nPackageName: {PackageName}; PackageVersion: {PackageVersion}; NamespaceBaseUri: {NamespaceBaseUri}; NamespaceUriUniquePart: {NamespaceUriUniquePart};\nExternalDocumentListFile: {ExternalDocumentListFile}; {FetchLicenseInformation}; EnablePackageMetadataParsing: {EnablePackageMetadataParsing}; {Verbosity}; ManifestInfo: {ManifestInfo}; DeleteManifestDirIfPresent: {DeleteManifestDirIfPresent}; ManifestDirPath: {ManifestDirPath};");
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
             // one is not provided.
