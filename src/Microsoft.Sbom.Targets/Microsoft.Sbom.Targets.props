@@ -10,7 +10,7 @@
         <SbomGenerationPackageName Condition=" '$(SbomGenerationPackageName)' == '' And $(PackageId) != '' ">$(PackageId)</SbomGenerationPackageName>
         <SbomGenerationPackageName Condition=" '$(SbomGenerationPackageName)' == '' And $(PackageId) == '' ">$(AssemblyName)</SbomGenerationPackageName>
         <SbomGenerationPackageVersion Condition=" '$(SbomGenerationPackageVersion)' == '' And $(Version) != '' ">$(Version)</SbomGenerationPackageVersion>
-        <SbomGenerationPackageVersion Condition=" '$(SbomGenerationPackageVersion)' == '' And $(PackageId) == '' ">1.0.0</SbomGenerationPackageVersion>
+        <SbomGenerationPackageVersion Condition=" '$(SbomGenerationPackageVersion)' == '' And $(Version) == '' ">1.0.0</SbomGenerationPackageVersion>
         <SbomGenerationNamespaceBaseUri Condition=" '$(SbomGenerationNamespaceBaseUri)' == '' ">http://spdx.org/spdxdocs/$(SbomGenerationPackageName)"</SbomGenerationNamespaceBaseUri>
         <SbomGenerationFetchLicenseInformation Condition=" '$(SbomGenerationFetchLicenseInformation)' == '' ">false</SbomGenerationFetchLicenseInformation>
         <SbomGenerationEnablePackageMetadataParsing Condition=" '$(SbomGenerationEnablePackageMetadataParsing)' == '' ">false</SbomGenerationEnablePackageMetadataParsing>
