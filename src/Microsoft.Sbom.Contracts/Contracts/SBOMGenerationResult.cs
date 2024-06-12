@@ -22,7 +22,7 @@ public class SbomGenerationResult
     public IList<EntityError> Errors { get; private set; }
 
     /// <summary>
-    /// The path where the SBOM was generated, if the generation was successful.
+    /// Gets the path where the SBOM was generated, if the generation was successful.
     /// </summary>
     public string? ManifestDirPath { get; private set; }
 
