@@ -31,9 +31,6 @@ using Serilog.Events;
 
 public class GenerateSbomTask : Task
 {
-    // TODO it is possible we will want to expose additional arguments, either as required or optional.
-    // Will need to get SDK team/ windows team input on which arguments are necessary.
-
     /// <summary>
     /// The path to the drop directory for which the SBOM will be generated
     /// </summary>
@@ -149,7 +146,6 @@ public class GenerateSbomTask : Task
     {
         try
         {
-            //this.Log.LogWarning($"BuildDropPath: {BuildDropPath}; BuildComponentPath: {BuildComponentPath}; PackageSupplier: {PackageSupplier};\nPackageName: {PackageName}; PackageVersion: {PackageVersion}; NamespaceBaseUri: {NamespaceBaseUri}; NamespaceUriUniquePart: {NamespaceUriUniquePart};\nExternalDocumentListFile: {ExternalDocumentListFile}; {FetchLicenseInformation}; EnablePackageMetadataParsing: {EnablePackageMetadataParsing}; {Verbosity}; ManifestInfo: {ManifestInfo}; DeleteManifestDirIfPresent: {DeleteManifestDirIfPresent}; ManifestDirPath: {ManifestDirPath};");
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
             // one is not provided.
