@@ -82,6 +82,7 @@ public abstract class AbstractGenerateSbomTaskTests
     [DataRow("http://example.com/hello/world")] // Regular valid URI
     [DataRow("http://example.com/hello%20world")] // Valid URI with space encoded
     [DataRow("http://ExAmplE.com")] // Mix of cases
+    [DataRow("  http://example.com  ")] // Trailing spaces
     [DataRow("http://www.example.com/path/to/resource?param1=value1&param2=value2&param3=value3&param4=value4&param5=" +
         "value5&param6=value6&param7=value7&param8=value8&param9=value9&param10=value10&param11=value11&param12=value12" +
         "&param13=value13&param14=value14&param15=value15&param16=value16&param17=value17&param18=value18&param19=value19&param20=value20#section1")] // Super long URI

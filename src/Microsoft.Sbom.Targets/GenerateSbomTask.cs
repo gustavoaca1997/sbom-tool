@@ -117,13 +117,10 @@ public class GenerateSbomTask : Task
         try
         {
             // Validate required args and args that take paths as input.
-            if (!ValidateRequiredParams() || !ValidateRootedPaths() || !ValidateAndSanitizeNamespaceUriUniquePart())
+            if (!ValidateAndSanitizeRequiredParams() || !ValidateRootedPaths() || !ValidateAndSanitizeNamespaceUriUniquePart())
             {
                 return false;
             }
-
-            // Sanitize package name, supplier, and version arguments
-            SanitizeBaselineArgs();
 
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
@@ -163,17 +160,6 @@ public class GenerateSbomTask : Task
         }
     }
 
-    /// <summary>
-    /// Sanitize arguments that are considered the "coordinates" of
-    /// an SBOM, such as package name, version, and supplier information.
-    /// </summary>
-    private void SanitizeBaselineArgs()
-    {
-        this.PackageSupplier = Remove_Spaces_Tabs_Newlines(this.PackageSupplier);
-        this.PackageName = Remove_Spaces_Tabs_Newlines(this.PackageName);
-        this.PackageVersion = Remove_Spaces_Tabs_Newlines(this.PackageVersion);
-    }
-
     private string Remove_Spaces_Tabs_Newlines(string value)
     {
         return value.Replace("\n", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty);
@@ -184,7 +170,7 @@ public class GenerateSbomTask : Task
     /// and do not contain whitespaces, tabs, or newline characters.
     /// </summary>
     /// <returns></returns>
-    private bool ValidateRequiredParams()
+    private bool ValidateAndSanitizeRequiredParams()
     {
         if (string.IsNullOrWhiteSpace(this.BuildDropPath))
         {
@@ -215,6 +201,12 @@ public class GenerateSbomTask : Task
             Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.NamespaceBaseUri)}. Please provide a valid URI.");
             return false;
         }
+
+        this.PackageSupplier = Remove_Spaces_Tabs_Newlines(this.PackageSupplier);
+        this.PackageName = Remove_Spaces_Tabs_Newlines(this.PackageName);
+        this.PackageVersion = Remove_Spaces_Tabs_Newlines(this.PackageVersion);
+        this.NamespaceBaseUri = this.NamespaceBaseUri.Trim();
+        this.BuildDropPath = this.BuildDropPath.Trim();
 
         return true;
     }
