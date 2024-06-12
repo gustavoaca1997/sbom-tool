@@ -6,6 +6,7 @@ namespace Microsoft.Sbom.Targets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.IO;
 using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -173,7 +174,7 @@ public class GenerateSbomTask : Task
                 externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
-            SbomPath = "path/to/sbom";
+            SbomPath = !string.IsNullOrWhiteSpace(result.ManifestDirPath) ? Path.GetFullPath(result.ManifestDirPath) : null;
             return result.IsSuccessful;
         }
         catch (Exception e)
