@@ -1,11 +1,4 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net6.0' ">net6.0</GenerateSbomTask_TFM>
-    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net8.0' ">net8.0</GenerateSbomTask_TFM>
-  </PropertyGroup>
-  <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\$(GenerateSbomTask_TFM)\Microsoft.Sbom.Targets.dll" />
-
   <PropertyGroup>
         <GenerateSBOM Condition=" '$(GenerateSBOM)' == '' ">false</GenerateSBOM>
         <!-- TODO in practice these will default to existing nuget props instead of these test values.
