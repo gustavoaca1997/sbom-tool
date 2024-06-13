@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - users/gustavoca/net-sdk-sbom-tool
   pull_request:
     branches:
       - main
+      - users/gustavoca/net-sdk-sbom-tool
 
 permissions:
   contents: read
