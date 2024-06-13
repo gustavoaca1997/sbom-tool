@@ -8,10 +8,14 @@
         We will need to discuss with the .NET SDK team if they want this target to be automatically included after any
         target and if so, which one. They likely know of a nuget packaging target that it would make sense to hook this in with.-->
 
+  <PropertyGroup>
+    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net6.0' ">net6.0</GenerateSbomTask_TFM>
+    <GenerateSbomTask_TFM Condition=" '$(TargetFramework)' == 'net8.0' ">net8.0</GenerateSbomTask_TFM>
+  </PropertyGroup>
   <UsingTask TaskName="Microsoft.Sbom.Targets.GenerateSbomTask" AssemblyFile="$(MSBuildThisFileDirectory)\..\tasks\$(GenerateSbomTask_TFM)\Microsoft.Sbom.Targets.dll" />
-  <Import Project="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\Microsoft.Sbom.Targets.props" />
-  
-  <Target Name="GenerateSbom" AfterTargets="Build">
+  <Import Project="$(MSBuildThisFileDirectory)\Microsoft.Sbom.Targets.props" />
+
+  <Target Name="GenerateSbomTarget" AfterTargets="Build" Condition=" '$(GenerateSBOM)' ==  'true' And '$(MSBuildRuntimeType)' == 'Core'">
         <GenerateSbomTask
             BuildDropPath="$(SbomGenerationBuildDropPath)"
             BuildComponentPath="$(SbomGenerationBuildComponentPath)"

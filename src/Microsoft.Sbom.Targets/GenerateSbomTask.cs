@@ -6,6 +6,7 @@ namespace Microsoft.Sbom.Targets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.IO;
 using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -31,9 +32,6 @@ using Serilog.Events;
 
 public class GenerateSbomTask : Task
 {
-    // TODO it is possible we will want to expose additional arguments, either as required or optional.
-    // Will need to get SDK team/ windows team input on which arguments are necessary.
-
     /// <summary>
     /// The path to the drop directory for which the SBOM will be generated
     /// </summary>
@@ -176,7 +174,7 @@ public class GenerateSbomTask : Task
                 externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
-            SbomPath = "path/to/sbom";
+            SbomPath = !string.IsNullOrWhiteSpace(result.ManifestDirPath) ? Path.GetFullPath(result.ManifestDirPath) : null;
             return result.IsSuccessful;
         }
         catch (Exception e)
