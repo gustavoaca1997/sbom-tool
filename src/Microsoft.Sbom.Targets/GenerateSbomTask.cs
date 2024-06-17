@@ -147,6 +147,12 @@ public class GenerateSbomTask : Task
     {
         try
         {
+            // Validate required args and args that take paths as input.
+            if (!ValidateAndSanitizeRequiredParams() || !ValidateRootedPaths() || !ValidateAndSanitizeNamespaceUriUniquePart())
+            {
+                return false;
+            }
+
             // Set other configurations. The GenerateSBOMAsync() already sanitizes and checks for
             // a valid namespace URI and generates a random guid for NamespaceUriUniquePart if
             // one is not provided.
@@ -185,13 +191,101 @@ public class GenerateSbomTask : Task
         }
     }
 
+    private string Remove_Spaces_Tabs_Newlines(string value)
+    {
+        return value.Replace("\n", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty);
+    }
+
+    /// <summary>
+    /// Ensure all required arguments are non-null/empty,
+    /// and do not contain whitespaces, tabs, or newline characters.
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateAndSanitizeRequiredParams()
+    {
+        if (string.IsNullOrWhiteSpace(this.BuildDropPath))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.BuildDropPath)}. Please provide a valid path.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageSupplier))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageSupplier)}. Please provide a valid supplier name.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageName))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageName)}. Please provide a valid name.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.PackageVersion))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.PackageVersion)}. Please provide a valid version number.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.NamespaceBaseUri))
+        {
+            Log.LogError($"SBOM generation failed: Empty argument detected for {nameof(this.NamespaceBaseUri)}. Please provide a valid URI.");
+            return false;
+        }
+
+        this.PackageSupplier = Remove_Spaces_Tabs_Newlines(this.PackageSupplier);
+        this.PackageName = Remove_Spaces_Tabs_Newlines(this.PackageName);
+        this.PackageVersion = Remove_Spaces_Tabs_Newlines(this.PackageVersion);
+        this.NamespaceBaseUri = this.NamespaceBaseUri.Trim();
+        this.BuildDropPath = this.BuildDropPath.Trim();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Ensure all arguments that accept paths are rooted.
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateRootedPaths()
+    {
+        if (!Path.IsPathRooted(this.BuildDropPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildDropPath)}. " +
+                $"Current value is {this.BuildDropPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildComponentPath)}. " +
+                $"Current value is {this.BuildComponentPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ManifestDirPath)}. " +
+                $"Current value is {this.ManifestDirPath}");
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile))
+        {
+            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ExternalDocumentListFile)}. " +
+                $"Current value is {this.ExternalDocumentListFile}");
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Checks the user's input for Verbosity and assigns the
     /// associated EventLevel value for logging.
     /// </summary>
     private EventLevel ValidateAndAssignVerbosity()
     {
-        if (string.IsNullOrEmpty(this.Verbosity))
+        if (string.IsNullOrWhiteSpace(this.Verbosity))
         {
             Log.LogMessage($"No verbosity level specified. Setting verbosity level at \"{EventLevel.LogAlways}\"");
             return EventLevel.LogAlways;
@@ -217,5 +311,27 @@ public class GenerateSbomTask : Task
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Ensure a valid NamespaceUriUniquePart is provided
+    /// </summary>
+    /// <returns></returns>
+    private bool ValidateAndSanitizeNamespaceUriUniquePart()
+    {
+        // Ensure the NamespaceUriUniquePart is valid if provided.
+        if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart)
+            && (!Guid.TryParse(this.NamespaceUriUniquePart, out var guidResult)
+            || this.NamespaceUriUniquePart.Equals(Guid.Empty.ToString())))
+        {
+            Log.LogError($"SBOM generation failed: NamespaceUriUniquePart '{this.NamespaceUriUniquePart}' must be a valid unique GUID.");
+            return false;
+        }
+        else if (!string.IsNullOrWhiteSpace(this.NamespaceUriUniquePart))
+        {
+            this.NamespaceUriUniquePart = this.NamespaceUriUniquePart.Trim();
+        }
+
+        return true;
     }
 }
