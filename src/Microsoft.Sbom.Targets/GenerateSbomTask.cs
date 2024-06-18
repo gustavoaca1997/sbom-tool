@@ -7,18 +7,31 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Sbom.Api;
+using Microsoft.Sbom.Api.Manifest;
+using Microsoft.Sbom.Api.Manifest.ManifestConfigHandlers;
+using Microsoft.Sbom.Api.Metadata;
+using Microsoft.Sbom.Api.Providers;
+using Microsoft.Sbom.Api.Providers.ExternalDocumentReferenceProviders;
+using Microsoft.Sbom.Api.Providers.FilesProviders;
+using Microsoft.Sbom.Api.Providers.PackagesProviders;
 using Microsoft.Sbom.Contracts;
+using Microsoft.Sbom.Contracts.Entities;
+using Microsoft.Sbom.Contracts.Interfaces;
+using Microsoft.Sbom.Extensions;
 using Microsoft.Sbom.Extensions.DependencyInjection;
+using Microsoft.Sbom.Parsers.Spdx22SbomParser;
+using Microsoft.VisualBasic;
+using PowerArgs;
+using Serilog.Events;
 
 public class GenerateSbomTask : Task
 {
-    // TODO it is possible we will want to expose additional arguments, either as required or optional.
-    // Will need to get SDK team/ windows team input on which arguments are necessary.
-
     /// <summary>
     /// The path to the drop directory for which the SBOM will be generated
     /// </summary>
@@ -107,7 +120,25 @@ public class GenerateSbomTask : Task
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((host, services) =>
                 services
-                .AddSbomTool())
+                .AddSbomTool()
+                /* Manually adding some dependencies since `AddSbomTool()` does not add them when
+                 * running the MSBuild Task from another project.
+                 */
+                .AddSingleton<ISourcesProvider, SBOMPackagesProvider>()
+                .AddSingleton<ISourcesProvider, CGExternalDocumentReferenceProvider>()
+                .AddSingleton<ISourcesProvider, DirectoryTraversingFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, ExternalDocumentReferenceFileProvider>()
+                .AddSingleton<ISourcesProvider, ExternalDocumentReferenceProvider>()
+                .AddSingleton<ISourcesProvider, FileListBasedFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, SbomFileBasedFileToJsonProvider>()
+                .AddSingleton<ISourcesProvider, CGScannedExternalDocumentReferenceFileProvider>()
+                .AddSingleton<ISourcesProvider, CGScannedPackagesProvider>()
+                .AddSingleton<IAlgorithmNames, AlgorithmNames>()
+                .AddSingleton<IManifestGenerator, Generator>()
+                .AddSingleton<IMetadataProvider, LocalMetadataProvider>()
+                .AddSingleton<IMetadataProvider, SBOMApiMetadataProvider>()
+                .AddSingleton<IManifestInterface, Validator>()
+                .AddSingleton<IManifestConfigHandler, SPDX22ManifestConfigHandler>())
             .Build();
         this.Generator = host.Services.GetRequiredService<ISBOMGenerator>();
     }
@@ -149,7 +180,7 @@ public class GenerateSbomTask : Task
                 externalDocumentReferenceListFile: this.ExternalDocumentListFile)).GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
-            SbomPath = "path/to/sbom";
+            SbomPath = !string.IsNullOrWhiteSpace(result.ManifestDirPath) ? Path.GetFullPath(result.ManifestDirPath) : null;
             return result.IsSuccessful;
         }
         catch (Exception e)

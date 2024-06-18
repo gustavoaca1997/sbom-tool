@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Sbom.Targets</id>
+    <version>0.0.0-preview.0.228</version>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/microsoft/sbom-tool</projectUrl>
+    <description>Tasks and targets for running the SBOM tool.</description>
+    <releaseNotes>https://github.com/microsoft/sbom-tool/releases</releaseNotes>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <repository type="git" url="https://github.com/microsoft/sbom-tool.git" commit="5df56c1aa448089cef351366a5185661d98584fe" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Microsoft.Sbom.Extensions.DependencyInjection" version="0.0.0-preview.0.228" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Build.Utilities.Core" version="17.10.4" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Hosting" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Sbom.Extensions.DependencyInjection" version="0.0.0-preview.0.228" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Build.Utilities.Core" version="17.10.4" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Hosting" version="8.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
