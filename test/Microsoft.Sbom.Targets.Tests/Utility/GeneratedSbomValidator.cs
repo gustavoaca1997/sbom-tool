@@ -30,7 +30,7 @@ internal class GeneratedSbomValidator
 
     internal void AssertSbomIsValid(string manifestPath, string buildDropPath, string expectedPackageName, string expectedPackageVersion, string expectedPackageSupplier, string expectedNamespaceUriBase, string expectedNamespaceUriUniquePart = null, string buildComponentPath = null)
     {
-        Assert.IsTrue(File.Exists(manifestPath));
+        Assert.IsTrue(File.Exists(manifestPath), $"Manifest file doesn't exist at {manifestPath}.");
 
         // Read and parse the manifest
         var manifestContent = File.ReadAllText(manifestPath);
