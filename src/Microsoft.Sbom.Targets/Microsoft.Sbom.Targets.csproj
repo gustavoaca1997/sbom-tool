@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <AssemblyName>Microsoft.Sbom.Targets</AssemblyName>
-    <TargetFrameworks>net8.0</TargetFrameworks>
     <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
     <IsPublishable>true</IsPublishable>
     <IsPackable>true</IsPackable>
