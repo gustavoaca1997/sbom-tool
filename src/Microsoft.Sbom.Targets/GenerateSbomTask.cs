@@ -148,7 +148,7 @@ public class GenerateSbomTask : Task
         try
         {
             // Validate required args and args that take paths as input.
-            if (!ValidateAndSanitizeRequiredParams() || !ValidateRootedPaths() || !ValidateAndSanitizeNamespaceUriUniquePart())
+            if (!ValidateAndSanitizeRequiredParams() || !ValidateAndSanitizeNamespaceUriUniquePart())
             {
                 return false;
             }
@@ -238,43 +238,6 @@ public class GenerateSbomTask : Task
         this.PackageVersion = Remove_Spaces_Tabs_Newlines(this.PackageVersion);
         this.NamespaceBaseUri = this.NamespaceBaseUri.Trim();
         this.BuildDropPath = this.BuildDropPath.Trim();
-
-        return true;
-    }
-
-    /// <summary>
-    /// Ensure all arguments that accept paths are rooted.
-    /// </summary>
-    /// <returns></returns>
-    private bool ValidateRootedPaths()
-    {
-        if (!Path.IsPathRooted(this.BuildDropPath))
-        {
-            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildDropPath)}. " +
-                $"Current value is {this.BuildDropPath}");
-            return false;
-        }
-
-        if (!string.IsNullOrWhiteSpace(this.BuildComponentPath) && !Path.IsPathRooted(this.BuildComponentPath))
-        {
-            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.BuildComponentPath)}. " +
-                $"Current value is {this.BuildComponentPath}");
-            return false;
-        }
-
-        if (!string.IsNullOrWhiteSpace(this.ManifestDirPath) && !Path.IsPathRooted(this.ManifestDirPath))
-        {
-            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ManifestDirPath)}. " +
-                $"Current value is {this.ManifestDirPath}");
-            return false;
-        }
-
-        if (!string.IsNullOrWhiteSpace(this.ExternalDocumentListFile) && !Path.IsPathRooted(this.ExternalDocumentListFile))
-        {
-            Log.LogError($"SBOM generation failed: Unrooted path detected. Please specify a full path for {nameof(this.ExternalDocumentListFile)}. " +
-                $"Current value is {this.ExternalDocumentListFile}");
-            return false;
-        }
 
         return true;
     }
