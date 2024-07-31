@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateSBOM>true</GenerateSBOM>
+  </PropertyGroup>
+
+  <Import Project="C:\Users\gustavoca\Repos\github\sbom-tool\src\Microsoft.Sbom.Targets\Microsoft.Sbom.Targets.targets" />
+</Project>
